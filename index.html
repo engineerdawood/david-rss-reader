@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./main.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"
+        integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
+
+</head>
+
+<body>
+
+    <section class="py-5 text-center container">
+        <div class="row py-lg-5">
+            <div class="col-lg-6 col-md-8 mx-auto">
+                <h1 class="fw-light">RSS feeds</h1>
+                <p class="lead text-muted">Click to load feed</p>
+                <div class="btn-group">
+                    <a href="#" class="btn btn-primary " data-id="bbc"
+                        data-url="https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Frss.xml">BBC
+                        News</a>
+                    <a href="#" class="btn btn-outline-secondary"
+                        data-url="https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fwww.buzzfeed.com%2Fuk%2Findex.xml"
+                        data-id="buzz">Buzzfeed</a>
+                    <a href="#" class="btn btn-outline-secondary"
+                        data-url="https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffliplet.com%2Ffeed"
+                        data-id="fliplet">Fliplet</a>
+                    <a href="#" class="btn btn-outline-secondary"
+                        data-url="https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fft.com%2Ffeed"
+                        data-id="ft">FT</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pagination -->
+    <section class="py-5 text-center container pagination-wrapper">
+
+    </section>
+
+
+    <script id="entry-template" type="text/x-handlebars-template">
+       {{#each items}}
+       <div class="col">
+        <div class="card shadow-sm">
+            <!-- Post thumbnail, if available -->
+            <img src="{{this.thumbnail}}">
+            <div class="card-body">
+                <!-- Post title -->
+                <h5>{{this.title}}</h5>
+                <!-- Post description -->
+                <p class="card-text"><small>{{{this.description}}}</small></p>
+                <p><a href="{{this.link}}">Read more &rarr;</a></p>
+                <div class="d-flex justify-content-between align-items-center">
+                    <!-- Format date appropriately as per browser/device region format -->
+                    <small class="text-muted">{{formatDate this.pubDate}}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/each}}
+
+      </script>
+    <!-- <div class="wwee"></div> -->
+    <div class="container">
+        <!-- Loading state UI -->
+        <div class="alert alert-secondary visually-hidden">Loading...</div>
+
+        <!-- Error state UI -->
+        <div class="alert alert-danger visually-hidden">
+            <h5>Unable to load feed</h5>
+            <!-- Show error message, if applicable -->
+            Feed could not be converted, probably not a valid RSS feed.<br>
+            <small><a href="#">Open feed in a new tab</a></small>
+        </div>
+
+        <!-- Feed (Show no more than 5 posts per page) -->
+        <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 cards">
+            <!-- Blog title -->
+
+
+        </div>
+    </div>
+    <script id="pagination-template" type="text/x-handlebars-template">
+        <div class="row py-lg-5">
+            <nav>
+                <ul class="pagination">
+                    <li class="page-item " data-page="prev">
+                        <a class="page-link"  >Previous</a>
+                    </li>
+                    <!-- {{#times pages}}
+
+                     <li class="page-item {{isActive this}}"  data-page="{{toNumber this }}"><a class="page-link" href="#"  >{{toNumber this }}</a></li>
+                    {{/times}} -->
+                    
+                    <li class="page-item" data-page="next">
+                        <a class="page-link" href="#">Next</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </script>
+
+    <!-- Pagination -->
+    <section class="py-5 text-center container pagination-wrapper pagination-top">
+
+    </section>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.2.1/jquery-migrate.min.js"></script>
+    <script
+        src="https://cdn.jsdelivr.net/gh/jfhovinne/jFeed@0d411f761c26013fb8f960d5a0a20f848706fdc5/build/dist/jquery.jfeed.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script>
+
+        var items = {}
+        var ids = ['bbc']
+        var totalLength = 0
+        var active = 'bbc'
+        var page = 1
+        const perpage = 5
+        $('.btn-group a').on('click', function () {
+            $('.container .row.cards').html('')
+
+            $('.alert-danger').addClass('visually-hidden')
+            $('.alert-secondary').removeClass('visually-hidden')
+
+
+            const id = $(this).attr('data-id')
+            $('.btn-group a').removeClass('btn-primary').addClass('btn-outline-secondary')
+            $(this).removeClass('btn-outline-secondary').addClass('btn-primary')
+            active = id
+
+            const url = $(this).attr('data-url')
+            const isFetched = ids.findIndex(i => i === id) > -1
+            if (!isFetched) {
+                fetch(url, {
+                    method: "get",
+                }).then(function (data) {
+
+
+                    if (!data.ok) {
+                        $('.alert-secondary').addClass('visually-hidden')
+
+                        $('.alert-danger').removeClass('visually-hidden')
+                        return
+                    }
+                    data.json().then(function (json) {
+                        items[id] = json.items
+                        compilehtmlCards(items[active])
+                        compilehtmlPagination()
+                        $('.alert-secondary').addClass('visually-hidden')
+
+                    })
+
+                })
+
+                ids.push(id)
+            } else {
+                $('.alert-secondary').addClass('visually-hidden')
+page=1
+                compilehtmlCards(items[active])
+                compilehtmlPagination()
+
+
+            }
+            totalLength = items[active].length
+
+        })
+
+
+
+
+
+        //first
+
+        fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Frss.xml', {
+            method: "get",
+        }).then(function (data) {
+            data.json().then(function (json) {
+                items[active] = json.items
+                totalLength = items[active].length
+                compilehtmlCards(items[active])
+                compilehtmlPagination()
+
+            })
+
+        })
+
+
+        Handlebars.registerHelper("formatDate", function (date) {
+            return moment(date).format('MMM DD, YYYY');
+        });
+
+        Handlebars.registerHelper("toNumber", function (num) {
+            return +num + 1;
+        });
+
+        Handlebars.registerHelper("isActive", function (p) {
+            return p + 1 == page ? 'active' : '';
+        });
+
+        Handlebars.registerHelper('times', function (n, block) {
+            var accum = '';
+            for (var i = 0; i < n; ++i)
+                accum += block.fn(i);
+            return accum;
+        });
+
+
+        function compilehtmlCards(items) {
+            var source = document.getElementById("entry-template").innerHTML;
+            var template = Handlebars.compile(source);
+            const cards = items.length > 5 ? items.slice(0, 5) : items
+            var html = template({ items: cards });
+
+            $('.container .row.cards').html(html)
+        }
+
+        function compilehtmlPagination() {
+            var source = document.getElementById("pagination-template").innerHTML;
+            var template = Handlebars.compile(source);
+            var html = template({ pages: Math.floor(totalLength / perpage), perpage: perpage, page: page });
+
+
+            $('.pagination-wrapper').html(html)
+
+            document.querySelectorAll('.page-item').forEach(el => {
+            el.addEventListener('click', function () {
+                const p = $(this).attr('data-page')
+
+                if(p==='next' && page<Math.floor(totalLength / perpage)){
+                    page+=1
+                compilehtmlCards([...items[active]].slice((page - 1 * perpage), perpage * page))
+
+                }else if(p==='prev' && page>1){
+                    page-=1
+
+                    compilehtmlCards([...items[active]].slice(((page - 1) * perpage), perpage * page))
+
+                }
+
+                // compilehtmlPagination()
+                // var html = template({ pages: Math.floor(totalLength / perpage), perpage: perpage, page: page });
+
+
+                // $('.pagination-wrapper').html(html)
+
+
+
+
+
+            })
+        })
+
+
+        }
+
+        
+
+
+
+
+
+    </script>
+</body>
+
+</html>
