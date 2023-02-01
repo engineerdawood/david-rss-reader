@@ -17,8 +17,8 @@
 
 <body>
 
-    <section class="py-5 text-center container">
-        <div class="row py-lg-5">
+    <section class="py-2 text-center container">
+        <div class="row py-lg-3">
             <div class="col-lg-6 col-md-8 mx-auto">
                 <h1 class="fw-light">RSS feeds</h1>
                 <p class="lead text-muted">Click to load feed</p>
@@ -41,34 +41,11 @@
     </section>
 
     <!-- Pagination -->
-    <section class="py-5 text-center container pagination-wrapper">
+    <section class="py-2 text-center container pagination-wrapper">
 
     </section>
 
 
-    <script id="entry-template" type="text/x-handlebars-template">
-       {{#each items}}
-       <div class="col">
-        <div class="card shadow-sm">
-            <!-- Post thumbnail, if available -->
-            <img src="{{this.thumbnail}}">
-            <div class="card-body">
-                <!-- Post title -->
-                <h5>{{this.title}}</h5>
-                <!-- Post description -->
-                <p class="card-text"><small>{{{this.description}}}</small></p>
-                <p><a href="{{this.link}}">Read more &rarr;</a></p>
-                <div class="d-flex justify-content-between align-items-center">
-                    <!-- Format date appropriately as per browser/device region format -->
-                    <small class="text-muted">{{formatDate this.pubDate}}</small>
-                </div>
-            </div>
-        </div>
-    </div>
-    {{/each}}
-
-      </script>
-    <!-- <div class="wwee"></div> -->
     <div class="container">
         <!-- Loading state UI -->
         <div class="alert alert-secondary visually-hidden">Loading...</div>
@@ -84,21 +61,31 @@
         <!-- Feed (Show no more than 5 posts per page) -->
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 cards">
             <!-- Blog title -->
-
-
         </div>
     </div>
-    <script id="pagination-template" type="text/x-handlebars-template">
+   
+
+    <!-- Pagination -->
+    <section class="py-2 text-center container pagination-wrapper pagination-top">
+
+    </section>
+
+
+    <!-- TEMPLATES -->
+     <!-- pagination -->
+
+
+     <script id="pagination-template" type="text/x-handlebars-template">
         <div class="row py-lg-5">
             <nav>
                 <ul class="pagination">
-                    <li class="page-item " data-page="prev">
+                    <li class="page-item disabled" data-page="prev">
                         <a class="page-link"  >Previous</a>
                     </li>
-                    <!-- {{#times pages}}
 
+                    {{#times pages}}
                      <li class="page-item {{isActive this}}"  data-page="{{toNumber this }}"><a class="page-link" href="#"  >{{toNumber this }}</a></li>
-                    {{/times}} -->
+                    {{/times}}
                     
                     <li class="page-item" data-page="next">
                         <a class="page-link" href="#">Next</a>
@@ -108,10 +95,29 @@
         </div>
     </script>
 
-    <!-- Pagination -->
-    <section class="py-5 text-center container pagination-wrapper pagination-top">
-
-    </section>
+    <!-- blogs -->
+    <script id="entry-template" type="text/x-handlebars-template">
+        {{#each items}}
+        <div class="col">
+         <div class="card shadow-sm">
+             <!-- Post thumbnail, if available -->
+             <img src="{{this.thumbnail}}">
+             <div class="card-body">
+                 <!-- Post title -->
+                 <h5>{{this.title}}</h5>
+                 <!-- Post description -->
+                 <p class="card-text"><small>{{{this.description}}}</small></p>
+                 <p><a href="{{this.link}}">Read more &rarr;</a></p>
+                 <div class="d-flex justify-content-between align-items-center">
+                     <!-- Format date appropriately as per browser/device region format -->
+                     <small class="text-muted">{{formatDate this.pubDate}}</small>
+                 </div>
+             </div>
+         </div>
+     </div>
+     {{/each}}
+ 
+    </script>
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -129,6 +135,8 @@
         var active = 'bbc'
         var page = 1
         const perpage = 5
+
+
         $('.btn-group a').on('click', function () {
             $('.container .row.cards').html('')
 
@@ -143,6 +151,8 @@
 
             const url = $(this).attr('data-url')
             const isFetched = ids.findIndex(i => i === id) > -1
+
+
             if (!isFetched) {
                 fetch(url, {
                     method: "get",
@@ -168,7 +178,7 @@
                 ids.push(id)
             } else {
                 $('.alert-secondary').addClass('visually-hidden')
-page=1
+                page = 1
                 compilehtmlCards(items[active])
                 compilehtmlPagination()
 
@@ -177,10 +187,6 @@ page=1
             totalLength = items[active].length
 
         })
-
-
-
-
 
         //first
 
@@ -192,9 +198,7 @@ page=1
                 totalLength = items[active].length
                 compilehtmlCards(items[active])
                 compilehtmlPagination()
-
             })
-
         })
 
 
@@ -207,7 +211,7 @@ page=1
         });
 
         Handlebars.registerHelper("isActive", function (p) {
-            return p + 1 == page ? 'active' : '';
+            return (p + 1) == page ? 'active' : '';
         });
 
         Handlebars.registerHelper('times', function (n, block) {
@@ -219,58 +223,55 @@ page=1
 
 
         function compilehtmlCards(items) {
-            var source = document.getElementById("entry-template").innerHTML;
+            var source = $("#entry-template").html();
             var template = Handlebars.compile(source);
             const cards = items.length > 5 ? items.slice(0, 5) : items
             var html = template({ items: cards });
-
             $('.container .row.cards').html(html)
         }
 
         function compilehtmlPagination() {
-            var source = document.getElementById("pagination-template").innerHTML;
+            var source = $("#pagination-template").html();
             var template = Handlebars.compile(source);
-            var html = template({ pages: Math.floor(totalLength / perpage), perpage: perpage, page: page });
-
+            var html = template({ pages: Math.ceil(totalLength / perpage), perpage: perpage, page: page });
 
             $('.pagination-wrapper').html(html)
 
-            document.querySelectorAll('.page-item').forEach(el => {
-            el.addEventListener('click', function () {
+            $('.page-item').on('click', function () {
                 const p = $(this).attr('data-page')
 
-                if(p==='next' && page<Math.floor(totalLength / perpage)){
-                    page+=1
-                compilehtmlCards([...items[active]].slice((page - 1 * perpage), perpage * page))
+                if (p === 'next' && page < Math.ceil(totalLength / perpage)) {
+                    page += 1
 
-                }else if(p==='prev' && page>1){
-                    page-=1
 
-                    compilehtmlCards([...items[active]].slice(((page - 1) * perpage), perpage * page))
+                } else if (p === 'prev' && page > 1) {
+                    page -= 1
 
+                } else if (!isNaN(p)) {
+                    page = p
                 }
 
-                // compilehtmlPagination()
-                // var html = template({ pages: Math.floor(totalLength / perpage), perpage: perpage, page: page });
+
+                if (page == 1) {
+                    $(`.page-item[data-page="prev"]`).addClass('disabled')
+                } else {
+                    $(`.page-item[data-page="prev"]`).removeClass('disabled')
+                }
+
+                if (page == Math.ceil(totalLength / perpage)) {
+                    $(`.page-item[data-page="next"]`).addClass('disabled')
+                } else {
+                    $(`.page-item[data-page="next"]`).removeClass('disabled')
+                }
+
+                compilehtmlCards([...items[active]].slice(((page - 1) * perpage), perpage * page))
 
 
-                // $('.pagination-wrapper').html(html)
-
-
-
-
+                $('.page-item').removeClass('active')
+                $(`.page-item[data-page="${page}"]`).addClass('active')
 
             })
-        })
-
-
         }
-
-        
-
-
-
-
 
     </script>
 </body>
