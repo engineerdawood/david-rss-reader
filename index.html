@@ -1,26 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>RSS Feed Reader</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="./main.css">
 
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"
         integrity="sha256-pvPw+upLPUjgMXY0G+8O0xUf+/Im1MZjXxxgOcBQBXU=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.7.7/handlebars.min.js"></script>
-
 </head>
-
 <body>
 
     <section class="py-2 text-center container">
         <div class="row py-lg-3">
             <div class="col-lg-6 col-md-8 mx-auto">
-                <h1 class="fw-light">RSS feeds</h1>
+                <h1 class="fw-light">RSS Feeds</h1>
                 <p class="lead text-muted">Click to load feed</p>
                 <div class="btn-group">
                     <a href="#" class="btn btn-primary " data-id="bbc"
@@ -42,40 +39,32 @@
 
     <!-- Pagination -->
     <section class="py-2 text-center container pagination-wrapper">
-
     </section>
-
 
     <div class="container">
         <!-- Loading state UI -->
         <div class="alert alert-secondary visually-hidden">Loading...</div>
-
         <!-- Error state UI -->
         <div class="alert alert-danger visually-hidden">
             <h5>Unable to load feed</h5>
             <!-- Show error message, if applicable -->
             Feed could not be converted, probably not a valid RSS feed.<br>
-            <small><a href="#">Open feed in a new tab</a></small>
+            <small><a target="_blank" href="https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Fft.com%2Ffeed">Open feed in a new tab</a></small>
         </div>
-
         <!-- Feed (Show no more than 5 posts per page) -->
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 g-3 cards">
             <!-- Blog title -->
         </div>
     </div>
-   
 
     <!-- Pagination -->
     <section class="py-2 text-center container pagination-wrapper pagination-top">
-
     </section>
 
-
     <!-- TEMPLATES -->
-     <!-- pagination -->
+    <!-- pagination -->
 
-
-     <script id="pagination-template" type="text/x-handlebars-template">
+    <script id="pagination-template" type="text/x-handlebars-template">
         <div class="row py-lg-5">
             <nav>
                 <ul class="pagination">
@@ -101,13 +90,13 @@
         <div class="col">
          <div class="card shadow-sm">
              <!-- Post thumbnail, if available -->
-             <img src="{{this.thumbnail}}">
+             <!-- <img src="{{this.thumbnail}}"> -->
              <div class="card-body">
                  <!-- Post title -->
                  <h5>{{this.title}}</h5>
                  <!-- Post description -->
                  <p class="card-text"><small>{{{this.description}}}</small></p>
-                 <p><a href="{{this.link}}">Read more &rarr;</a></p>
+                 <p><a target="_blank" href="{{this.link}}">Read more &rarr;</a></p>
                  <div class="d-flex justify-content-between align-items-center">
                      <!-- Format date appropriately as per browser/device region format -->
                      <small class="text-muted">{{formatDate this.pubDate}}</small>
@@ -115,10 +104,8 @@
              </div>
          </div>
      </div>
-     {{/each}}
- 
+    {{/each}} 
     </script>
-
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.2.1/jquery-migrate.min.js"></script>
@@ -128,7 +115,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
     <script>
-
         var items = {}
         var ids = ['bbc']
         var totalLength = 0
@@ -136,33 +122,29 @@
         var page = 1
         const perpage = 5
 
-
         $('.btn-group a').on('click', function () {
             $('.container .row.cards').html('')
-
             $('.alert-danger').addClass('visually-hidden')
             $('.alert-secondary').removeClass('visually-hidden')
-
 
             const id = $(this).attr('data-id')
             $('.btn-group a').removeClass('btn-primary').addClass('btn-outline-secondary')
             $(this).removeClass('btn-outline-secondary').addClass('btn-primary')
             active = id
-
             const url = $(this).attr('data-url')
             const isFetched = ids.findIndex(i => i === id) > -1
 
+            $('.pagination-wrapper').removeClass('visually-hidden')
 
             if (!isFetched) {
                 fetch(url, {
                     method: "get",
                 }).then(function (data) {
-
-
                     if (!data.ok) {
                         $('.alert-secondary').addClass('visually-hidden')
-
                         $('.alert-danger').removeClass('visually-hidden')
+                        $('.pagination-wrapper').addClass('visually-hidden')
+                        items[id] = 'error'
                         return
                     }
                     data.json().then(function (json) {
@@ -170,25 +152,23 @@
                         compilehtmlCards(items[active])
                         compilehtmlPagination()
                         $('.alert-secondary').addClass('visually-hidden')
-
                     })
-
                 })
-
                 ids.push(id)
             } else {
-                $('.alert-secondary').addClass('visually-hidden')
-                page = 1
-                compilehtmlCards(items[active])
-                compilehtmlPagination()
-
-
+                if (items[id] == 'error') {
+                    $('.alert-secondary').addClass('visually-hidden')
+                    $('.pagination-wrapper').addClass('visually-hidden')
+                    $('.alert-danger').removeClass('visually-hidden')
+                } else {
+                    $('.alert-secondary').addClass('visually-hidden')
+                    page = 1
+                    compilehtmlCards(items[active])
+                    compilehtmlPagination()
+                }
             }
             totalLength = items[active].length
-
         })
-
-        //first
 
         fetch('https://api.rss2json.com/v1/api.json?rss_url=https%3A%2F%2Ffeeds.bbci.co.uk%2Fnews%2Frss.xml', {
             method: "get",
@@ -200,7 +180,6 @@
                 compilehtmlPagination()
             })
         })
-
 
         Handlebars.registerHelper("formatDate", function (date) {
             return moment(date).format('MMM DD, YYYY');
@@ -221,7 +200,6 @@
             return accum;
         });
 
-
         function compilehtmlCards(items) {
             var source = $("#entry-template").html();
             var template = Handlebars.compile(source);
@@ -241,16 +219,12 @@
                 const p = $(this).attr('data-page')
 
                 if (p === 'next' && page < Math.ceil(totalLength / perpage)) {
-                    page += 1
-
-
+                    page = +page + 1
                 } else if (p === 'prev' && page > 1) {
                     page -= 1
-
                 } else if (!isNaN(p)) {
                     page = p
                 }
-
 
                 if (page == 1) {
                     $(`.page-item[data-page="prev"]`).addClass('disabled')
@@ -266,13 +240,10 @@
 
                 compilehtmlCards([...items[active]].slice(((page - 1) * perpage), perpage * page))
 
-
                 $('.page-item').removeClass('active')
                 $(`.page-item[data-page="${page}"]`).addClass('active')
-
             })
         }
-
     </script>
 </body>
 
